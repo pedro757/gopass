@@ -16,11 +16,15 @@ import (
 )
 
 func TestAddUsesLiteralPaths(t *testing.T) {
-	ctx := ctxutil.WithGitInit(config.NewContextInMemory(), true)
-	g, err := Init(ctx, t.TempDir(), "Test", "test@example.org")
+	// Exercise the Windows runtime override even if the parent enables globbing.
+	t.Setenv("MSYS", "glob")
+	t.Setenv("CYGWIN", "glob")
+	ctx := ctxutil.WithGitInit(config.NewContextInMemory(), false)
+	g, err := Init(ctx, t.TempDir(), "", "")
 	require.NoError(t, err)
-	require.NoError(t, g.Set(ctx, "account[1].gpg", []byte("intended ciphertext")))
 	require.NoError(t, g.Set(ctx, "account1.gpg", []byte("unrelated ciphertext")))
+	require.NoError(t, g.CheckImport(ctx, "account[1].gpg"))
+	require.NoError(t, g.Set(ctx, "account[1].gpg", []byte("intended ciphertext")))
 	require.NoError(t, g.Add(ctx, "account[1].gpg"))
 
 	out, _, err := g.captureCmd(ctx, "testIndex", "diff", "--cached", "--name-only")

@@ -6,9 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
@@ -148,6 +150,14 @@ func (g *Git) captureCmd(ctx context.Context, name string, args ...string) ([]by
 	cmd.Dir = getPathOverride(ctx, g.fs.Path())
 	cmd.Stdout = bufOut
 	cmd.Stderr = bufErr
+	if runtime.GOOS == "windows" {
+		// MSYS2 and Cygwin expand unquoted wildcards when launched by a
+		// native Windows process, before Git can honor --literal-pathspecs.
+		cmd.Env = append(cmd.Environ(),
+			"MSYS="+strings.TrimSpace(os.Getenv("MSYS")+" noglob"),
+			"CYGWIN="+strings.TrimSpace(os.Getenv("CYGWIN")+" noglob"),
+		)
+	}
 
 	debug.Log("store.%s: %s %+v (%s)", name, cmd.Path, cmd.Args, g.fs.Path())
 	err := cmd.Run()

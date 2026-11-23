@@ -18,6 +18,7 @@ import (
 var ignoredEnvs = set.Map([]string{
 	// keep-sorted start
 	"APPDATA",
+	"CYGWIN",
 	"DEBEMAIL",
 	"DEBFULLNAME",
 	"EMAIL",
@@ -35,6 +36,7 @@ var ignoredEnvs = set.Map([]string{
 	"GPG_TTY",
 	"HOME",
 	"LOCALAPPDATA",
+	"MSYS",
 	"PASSWORD_STORE_UMASK", // indirect usage
 	"TERMUX_VERSION",
 	"USER",
